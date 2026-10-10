@@ -86,7 +86,6 @@ EDGE_HOSTS = [
     for h in os.environ.get(
         "EDGE_HOSTS",
         "vps.cheng2001.top:443,api.gzcrtw.com:443,cf-cname.xingpingcn.top:443,p.etime.vip:443,cf.3666888.xyz:443,"
-        "baota.us.kg:443,eii.at:443,bbs.alipansou.com:443,auto.dolby.dpdns.org:443,tt.78607323.xyz:443",
         "www.mlkj888.com:443,www.galgamex.net:443,tt.78607323.xyz:443,tt.78607323.xyz:443,"
         "p.etime.vip:443,p.etime.vip:443,bbs.alipansou.com:443,cf.itv888.cn:443,cf.nyanya.moe:443",
     ).split(",")
