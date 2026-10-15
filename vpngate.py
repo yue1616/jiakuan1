@@ -16,9 +16,10 @@ return hosts
         log("EDGE POOL", f"API 候选不可连接，改用 {len(selected)} 个可连接的静态回退入口")
         return selected
 
-    fallback = list(dict.fromkeys(api_hosts + static_hosts))
-    log("EDGE POOL", "警告：自动 TCP 探测未找到可连接入口，回退到未经验证的候选列表")
-    return fallback or [normalize_edge_endpoint(h) for h in EDGE_HOSTS if normalize_edge_endpoint(h)]
+    # 不把未通过官方网段验证或未通过 TCP 探测的 API IP 当作优选入口。
+    # 如静态回退池也全部不可连接，返回空列表，让主流程停止发布，避免生成误导性节点。
+    log("EDGE POOL", "错误：自动候选与静态回退池均未找到可连接入口；拒绝使用未验证 IP")
+    return []
 
 def build_nodes_text(data, edge_hosts=None):
     """生成纯节点行版本 (无注释): 每行 = 入口地址#名字$sstp://..."""
@@ -132,4 +133,3 @@ if __name__ == "__main__":
         raise
     except Exception as exc:
         die(f"程序异常: {type(exc).__name__}: {exc}")
-
