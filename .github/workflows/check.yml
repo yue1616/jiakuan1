@@ -3,7 +3,7 @@ name: VPN Gate Node Check
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *' # 每天 UTC 00:00 (北京时间 08:00) 自动运行
+    - cron: '*/30 * * * *' # 每 30 分钟运行一次（UTC）
 
 permissions:
   contents: read
@@ -30,15 +30,22 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Get VPN Gate nodes + check via Cloudflare Worker + build page
+      - name: Get VPN Gate nodes, auto-select Cloudflare entries, and build page
         run: python vpngate.py
         env:
-          # 已部署的检测 Worker (不要改动: 检测统一走这里)
           CHECK_WORKER: ${{ secrets.DOMAIN }}
           CHECK_CONCURRENCY: "32"
           CHECK_TIMEOUT: "90"
+          OPTIMAL_API: "https://bestcf.pages.dev/random-region/JP/100.txt,https://bestcf.pages.dev/random-region/HK/100.txt"
+          EDGE_TEST_TIMEOUT: "2.5"
+          EDGE_TEST_REPEATS: "2"
+          EDGE_TEST_CONCURRENCY: "48"
+          EDGE_MAX_SELECTED: "20"
+          NODES_URL: "https://yue1616.github.io/jiakuan1/nodes.txt"
 
-      - name: Ensure GitHub Pages is enabled (one-time auto setup)
+      - name: Ensure GitHub Pages is enabled
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -54,8 +61,6 @@ jobs:
             echo
             sleep 10
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -63,11 +68,13 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'public'
+          path: public
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
       - name: Show site URL
-        run: 'echo "site: https://yue1616.github.io/gate/ (deploy outcome: ${{ steps.deployment.outcome }})"'
+        run: |
+          echo "site: https://yue1616.github.io/jiakuan1/ (deploy outcome: ${{ steps.deployment.outcome }})"
+
